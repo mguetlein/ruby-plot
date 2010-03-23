@@ -98,7 +98,8 @@ module RubyPlot
     output_plt_arr = Array.new
     output_plt_arr.push "# Specifies encoding and output format"
     output_plt_arr.push "set encoding default"
-    output_plt_arr.push "set terminal svg"
+    #output_plt_arr.push "set terminal svg"
+    output_plt_arr.push 'set terminal svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'
     output_plt_arr.push "set output '#{svg_path}'"
     output_plt_arr.push ""
     output_plt_arr.push "# Specifies the range of the axes and appearance"
