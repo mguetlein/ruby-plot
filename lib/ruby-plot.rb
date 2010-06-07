@@ -9,6 +9,8 @@ end
 
 require "plot_bars.rb"
 require "plot_lines.rb"
+require "plot_points.rb"
 
 #RubyPlot::test_plot_lines
 #RubyPlot::test_plot_bars
+#RubyPlot::test_plot_points

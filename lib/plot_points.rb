@@ -8,11 +8,11 @@
 
 module RubyPlot
 
-  def self.plot_lines(svg_path, title, x_lable, y_lable, names, x_values, y_values, faint=nil)
+  def self.plot_points(svg_path, title, x_lable, y_lable, names, x_values, y_values)
     
-    #LOGGER.debug names.inspect
-    #LOGGER.debug x_values.inspect
-    #LOGGER.debug y_values.inspect
+    LOGGER.debug names.inspect
+    LOGGER.debug x_values.inspect
+    LOGGER.debug y_values.inspect
     
     data = []
     (0..x_values.size-1).each do |i|
@@ -68,17 +68,17 @@ module RubyPlot
         #LOGGER.debug "Same length!"
         for j in 0..true_pos_arr.length-1
           #check if array entries are float format and between 0.0 and 100.0
-          if numeric?(true_pos_arr[j].to_s.tr(',', '.')) && true_pos_arr[j].to_s.tr(',', '.').to_f <= 100 && true_pos_arr[j].to_s.tr(',', '.').to_f >= 0
-            if  numeric?(false_pos_arr[j].to_s.tr(',', '.')) && false_pos_arr[j].to_s.tr(',', '.').to_f <= 100 && false_pos_arr[j].to_s.tr(',', '.').to_f >= 0
+          #if numeric?(true_pos_arr[j].to_s.tr(',', '.')) && true_pos_arr[j].to_s.tr(',', '.').to_f <= 100 && true_pos_arr[j].to_s.tr(',', '.').to_f >= 0
+          #  if  numeric?(false_pos_arr[j].to_s.tr(',', '.')) && false_pos_arr[j].to_s.tr(',', '.').to_f <= 100 && false_pos_arr[j].to_s.tr(',', '.').to_f >= 0
               output_dat_arr[j] = "#{true_pos_arr[j]} #{false_pos_arr[j]}"
-            else
-              raise "The data of #{names[i]}  has not the right formatin at position #{j}\n"+
-                    "The right format is one float/int from 0 to 100 each line (e.g. '0'; '23,34'; '65.87' or '99')"
-            end
-          else
-            raise "The data of #{names[i]}  has not the right formatin at position #{j}+\n"
-                   "The right format is one float/int from 0 to 100 each line (e.g. '0'; '23,34'; '65.87' or '99')"
-          end
+          #  else
+          #    raise "The data of #{names[i]}  has not the right formatin at position #{j}\n"+
+          #          "The right format is one float/int from 0 to 100 each line (e.g. '0'; '23,34'; '65.87' or '99')"
+          #  end
+          #else
+          #  raise "The data of #{names[i]}  has not the right formatin at position #{j}+\n"
+          #         "The right format is one float/int from 0 to 100 each line (e.g. '0'; '23,34'; '65.87' or '99')"
+          #end
         end
         #-----------------------------------------------------
         #write *.dat files
@@ -108,35 +108,34 @@ module RubyPlot
     output_plt_arr.push ""
     output_plt_arr.push "# Specifies the range of the axes and appearance"
     
-    output_plt_arr.push "set xrange [0:100]"
-    output_plt_arr.push "set yrange [0:100]"
+    #output_plt_arr.push "set xrange [0:100]"
+    #output_plt_arr.push "set yrange [0:100]"
     output_plt_arr.push "set grid lw 0.5"
     output_plt_arr.push "set title \"#{title}\""
     output_plt_arr.push "set key below"
-    #output_plt_arr.push "set key invert reverse Left outside"
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
-    output_plt_arr.push "set arrow from 0,0 to 100,100 nohead"
+    #output_plt_arr.push "set arrow to 1,1 nohead"
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push "# Draws the plot and specifies its appearance ..."
+    
     output_plt_arr.push "plot \\"#'random_0.dat' using 1:2 title 'random' with lines lw 1, \\"
     i = 0
     for i in 0..names.length-1
-      
-      #style = grey[i] ? "lw 1.5 lt 0" : "lw 3" 
-      style = faint!=nil && faint[i] ? "lw 2" : "lw 4"
-      
       if i == names.length-1
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with lines #{style}"
+        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with points"
       else
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with lines #{style}, \\"
+        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with points, \\"
       end
     end
     output_plt_arr.push ""
     output_plt_arr.push ""
+    
+    
+    #output_plt_arr << "plot f(x)"
     
     # -----------------------------------------------------
     # write *.plt files
@@ -170,8 +169,8 @@ module RubyPlot
     end
   end
  
-  def self.test_plot_lines
-    plot_lines("/tmp/result.svg" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true])
+  def self.test_plot_points
+    plot_points("/tmp/result.svg" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], [[0.20,0.60,0.80], [0.10,0.25,0.70,0.95]], [[0.15,0.50,0.90],[0.20,0.40,0.50,0.70]])
   end
  
   private

@@ -3,6 +3,8 @@ module RubyPlot
 
   def self.plot_bars(title = '', measures = [], algorithms = [], output_file = '')
     
+   #puts "'"+title+"',"+measures.inspect+","+algorithms.inspect+","
+    
     measures = measures.collect{|m| m.gsub(/_/,'-')}
     
     Gnuplot.open do |gp|
@@ -19,7 +21,9 @@ module RubyPlot
         plot.style    'fill  solid 1.00 border -1'
         plot.style    'rectangle back fc lt -3 fillstyle  solid 1.00 border -1'
         #plot.key    'outside right top vertical Right noreverse enhanced autotitles columnhead nobox'
-        plot.key "invert reverse Left outside"
+        #plot.key "invert reverse Left outside"
+        plot.key "below"
+        
         plot.style    'histogram clustered gap 3 title  offset character 0, 0, 0'
   #     plot.datafile 'missing "-"'
         plot.style    'data histograms'

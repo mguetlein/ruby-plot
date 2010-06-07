@@ -10,7 +10,7 @@ begin
     gem.email = "vorgrimmlerdavid@gmx.de"
     gem.homepage = "http://github.com/davor/ruby-plot"
     gem.authors = ["David Vorgrimmler", "Martin Gütlein"]
-		[].each do |dep|
+		['logger', 'gnuplot'].each do |dep|
 		  gem.add_dependency dep
 		end
 		gem.files =  FileList["[A-Z]*", "{bin,generators,lib,test}/**/*"]
