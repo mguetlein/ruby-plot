@@ -14,11 +14,19 @@ module RubyPlot
     LOGGER.debug x_values.inspect
     LOGGER.debug y_values.inspect
     
+    min = Float::MAX
+    max = -Float::MAX
+    
     data = []
     (0..x_values.size-1).each do |i|
       data << y_values[i]
       data << x_values[i]
+      
+      min = [ min, x_values[i].min, y_values[i].min ].min
+      max = [ max, x_values[i].max, y_values[i].max ].max
     end
+    
+    border = (max-min)*0.1
     
     #Main
     STDOUT.sync = true
@@ -108,14 +116,14 @@ module RubyPlot
     output_plt_arr.push ""
     output_plt_arr.push "# Specifies the range of the axes and appearance"
     
-    #output_plt_arr.push "set xrange [0:100]"
-    #output_plt_arr.push "set yrange [0:100]"
+    output_plt_arr.push "set xrange ["+(min-border).to_s+":"+(max+border).to_s+"]"
+    output_plt_arr.push "set yrange ["+(min-border).to_s+":"+(max+border).to_s+"]"
     output_plt_arr.push "set grid lw 0.5"
     output_plt_arr.push "set title \"#{title}\""
     output_plt_arr.push "set key below"
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
-    #output_plt_arr.push "set arrow to 1,1 nohead"
+    output_plt_arr.push "set arrow from "+min.to_s+","+min.to_s+" to "+max.to_s+","+max.to_s+" nohead"
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""
