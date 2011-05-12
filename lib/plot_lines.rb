@@ -8,7 +8,7 @@
 
 module RubyPlot
 
-  def self.plot_lines(svg_path, title, x_lable, y_lable, names, x_values, y_values, faint=nil)
+  def self.plot_lines(path, title, x_lable, y_lable, names, x_values, y_values, faint=nil)
     
     #LOGGER.debug names.inspect
     #LOGGER.debug x_values.inspect
@@ -37,7 +37,7 @@ module RubyPlot
     end
     
     if status
-      raise "Usage: svg_roc_plot (svg_path(?), title(string), x-lable(string), y-lable(sting), algorithms(array), true_pos_data1(array), false_pos_data1(array), ...,  true_pos_data_n(array), false_pos_data_n(array))\n"+
+      raise "Usage: svg_roc_plot (path(?), title(string), x-lable(string), y-lable(sting), algorithms(array), true_pos_data1(array), false_pos_data1(array), ...,  true_pos_data_n(array), false_pos_data_n(array))\n"+
             "       Only pairs of data are allowed but at least one.\n"+
             "       Each data array has to provide one float/int number from 0 to 100 per entry."
     end
@@ -103,11 +103,20 @@ module RubyPlot
     output_plt_arr.push "# Specifies encoding and output format"
     output_plt_arr.push "set encoding default"
     #output_plt_arr.push "set terminal svg"
-    output_plt_arr.push 'set terminal svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'
-    output_plt_arr.push "set output '#{svg_path}'"
+    if path=~/(?i)svg/
+      output_plt_arr.push 'set terminal svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'
+    elsif path=~/(?i)png/
+      output_plt_arr.push 'set terminal png'
+    else
+      raise "format not supported "+path.to_s
+    end
+    output_plt_arr.push "set output '#{path}'"
     output_plt_arr.push ""
     output_plt_arr.push "# Specifies the range of the axes and appearance"
     
+    # x and y have equal scale
+    output_plt_arr.push 'set size ratio -1'
+
     output_plt_arr.push "set xrange [0:100]"
     output_plt_arr.push "set yrange [0:100]"
     output_plt_arr.push "set grid lw 0.5"
@@ -157,7 +166,7 @@ module RubyPlot
     end
     raise "gnuplot failes (cmd: "+cmd.to_s+", out: "+response.to_s+")" unless $?==0
     
-    LOGGER.debug "#{svg_path} created. "
+    LOGGER.debug "#{path} created. "
     
     # -----------------------------------------------------
     # remove *.plt and *.dat files
@@ -172,6 +181,8 @@ module RubyPlot
  
   def self.test_plot_lines
     plot_lines("/tmp/result.svg" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true])
+    
+    plot_lines("/tmp/result.png" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true])
   end
  
   private

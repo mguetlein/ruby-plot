@@ -8,11 +8,11 @@
 
 module RubyPlot
 
-  def self.plot_points(svg_path, title, x_lable, y_lable, names, x_values, y_values)
+  def self.plot_points(path, title, x_lable, y_lable, names, x_values, y_values, log=true)
     
-    LOGGER.debug names.inspect
-    LOGGER.debug x_values.inspect
-    LOGGER.debug y_values.inspect
+    LOGGER.debug "ruby-plot: plot points "+names.inspect
+    LOGGER.debug "ruby-plot: plot points "+x_values.inspect
+    LOGGER.debug "ruby-plot: plot points "+y_values.inspect
     
     min = Float::MAX
     max = -Float::MAX
@@ -26,7 +26,10 @@ module RubyPlot
       max = [ max, x_values[i].max, y_values[i].max ].max
     end
     
-    border = (max-min)*0.1
+    if log && min<=0
+      LOGGER.warn "cannot use logscale for <=0 data"
+      log = false
+    end
     
     #Main
     STDOUT.sync = true
@@ -45,7 +48,7 @@ module RubyPlot
     end
     
     if status
-      raise "Usage: svg_roc_plot (svg_path(?), title(string), x-lable(string), y-lable(sting), algorithms(array), true_pos_data1(array), false_pos_data1(array), ...,  true_pos_data_n(array), false_pos_data_n(array))\n"+
+      raise "Usage: svg_roc_plot (path(?), title(string), x-lable(string), y-lable(sting), algorithms(array), true_pos_data1(array), false_pos_data1(array), ...,  true_pos_data_n(array), false_pos_data_n(array))\n"+
             "       Only pairs of data are allowed but at least one.\n"+
             "       Each data array has to provide one float/int number from 0 to 100 per entry."
     end
@@ -110,20 +113,47 @@ module RubyPlot
     output_plt_arr = Array.new
     output_plt_arr.push "# Specifies encoding and output format"
     output_plt_arr.push "set encoding default"
-    #output_plt_arr.push "set terminal svg"
-    output_plt_arr.push 'set terminal svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'
-    output_plt_arr.push "set output '#{svg_path}'"
+    
+    if path=~/(?i)svg/
+      output_plt_arr.push 'set terminal svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'
+    elsif path=~/(?i)png/
+      output_plt_arr.push 'set terminal png'
+    else
+      raise "format not supported "+path.to_s
+    end
+    # x and y have equal scale
+    output_plt_arr.push 'set size ratio -1'
+    
+    if log
+      output_plt_arr.push 'set logscale x'
+      output_plt_arr.push 'set logscale y'
+    end
+    
+    output_plt_arr.push "set output '#{path}'"
     output_plt_arr.push ""
     output_plt_arr.push "# Specifies the range of the axes and appearance"
     
-    output_plt_arr.push "set xrange ["+(min-border).to_s+":"+(max+border).to_s+"]"
-    output_plt_arr.push "set yrange ["+(min-border).to_s+":"+(max+border).to_s+"]"
+    border = (max-min)*0.1
+    if log
+      min_border = min-border/10.0
+      while min_border<=0
+        border /= 2
+        min_border = min-border/10.0
+      end
+      max_border = max+border
+    else
+      min_border = min-border
+      max_border = max+border
+    end
+    output_plt_arr.push "set xrange ["+min_border.to_s+":"+max_border.to_s+"]"
+    output_plt_arr.push "set yrange ["+min_border.to_s+":"+max_border.to_s+"]"
+    
     output_plt_arr.push "set grid lw 0.5"
     output_plt_arr.push "set title \"#{title}\""
     output_plt_arr.push "set key below"
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
-    output_plt_arr.push "set arrow from "+min.to_s+","+min.to_s+" to "+max.to_s+","+max.to_s+" nohead"
+    #output_plt_arr.push "set arrow from "+min.to_s+","+min.to_s+" to "+max.to_s+","+max.to_s+" nohead"
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""
@@ -164,7 +194,7 @@ module RubyPlot
     end
     raise "gnuplot failes (cmd: "+cmd.to_s+", out: "+response.to_s+")" unless $?==0
     
-    LOGGER.debug "#{svg_path} created. "
+    LOGGER.debug "#{path} created. "
     
     # -----------------------------------------------------
     # remove *.plt and *.dat files
@@ -178,7 +208,9 @@ module RubyPlot
   end
  
   def self.test_plot_points
-    plot_points("/tmp/result.svg" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], [[0.20,0.60,0.80], [0.10,0.25,0.70,0.95]], [[0.15,0.50,0.90],[0.20,0.40,0.50,0.70]])
+    plot_points("/tmp/result.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
+      [[0.20,0.60,0.80,0.20,1.0,0.001], [0.10,0.25,0.70,0.95,0.2,0.3434]], 
+      [[0.15,0.50,0.90,0.2,9,0.5],[0.20,0.40,0.50,0.70,0.3,0.234589]])
   end
  
   private

@@ -14,7 +14,14 @@ module RubyPlot
           string += '"' + measures[i-1] + '" ' + i.to_s + ".00000 -1 "
         end
   
-        plot.terminal 'svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'         
+        if output_file=~/(?i)svg/
+          plot.terminal 'svg size 800,600 dynamic enhanced fname "Arial" fsize 12 butt'
+        elsif output_file=~/(?i)png/
+          plot.terminal 'png'
+        else
+          raise "format not supported "+path.to_s
+        end
+  
         plot.output   output_file
         plot.bar    '1.000000'
         plot.boxwidth '0.9 absolute'
@@ -58,6 +65,10 @@ module RubyPlot
     x = ['ACC_with_very_long_name_consider_that', 'AUC', 'SPEC', 'SENS']
     data = [['Alg1', 1.00, 1.00, 1.00, 1.00], ['Alg2', 0.75, 0.75, 0.75, 0.75], ['Alg3', 0.50, 0.50, 0.50, 0.50]]
     plot_bars('Vergleich der Algorithmen', x, data, '/tmp/hist.svg')
+    
+    x = ['ACC_with_very_long_name_consider_that', 'AUC', 'SPEC', 'SENS']
+    data = [['Alg1', 1.00, 1.00, 1.00, 1.00], ['Alg2', 0.75, 0.75, 0.75, 0.75], ['Alg3', 0.50, 0.50, 0.50, 0.50]]
+    plot_bars('Vergleich der Algorithmen', x, data, '/tmp/hist.png')
   end
   
 end
