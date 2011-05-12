@@ -153,7 +153,8 @@ module RubyPlot
     output_plt_arr.push "set key below"
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
-    #output_plt_arr.push "set arrow from "+min.to_s+","+min.to_s+" to "+max.to_s+","+max.to_s+" nohead"
+    
+    output_plt_arr.push "set arrow from "+min_border.to_s+","+min_border.to_s+" to "+max_border.to_s+","+max_border.to_s+" nohead lt 0"
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""

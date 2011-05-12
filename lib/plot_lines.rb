@@ -125,7 +125,7 @@ module RubyPlot
     #output_plt_arr.push "set key invert reverse Left outside"
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
-    output_plt_arr.push "set arrow from 0,0 to 100,100 nohead"
+    output_plt_arr.push "set arrow from 0,0 to 100,100 nohead lt 0"
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""
