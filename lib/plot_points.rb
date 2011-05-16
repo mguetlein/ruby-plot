@@ -12,10 +12,7 @@ module RubyPlot
     
     min = Float::MAX
     max = -Float::MAX
-    data = []
     (0..x_values.size-1).each do |i|
-      data << y_values[i]
-      data << x_values[i]
       min = [ min, x_values[i].min, y_values[i].min ].min
       max = [ max, x_values[i].max, y_values[i].max ].max
     end
@@ -44,7 +41,18 @@ module RubyPlot
     plot_points(path, title, x_lable, y_lable, names, x_values, y_values, log, x_range, y_range, true, true, false, false, false)      
   end
   
-  def self.accuracy_confidence_plot(path, title, x_lable, y_lable, names, x_values, y_values, y_range=nil, reverse_y=false)
+  def self.accuracy_confidence_plot(path, title, x_lable, y_lable, names, x_values, y_values, reverse_y=false) #y_range=nil, 
+    
+    min = Float::MAX
+    max = -Float::MAX
+    (0..x_values.size-1).each do |i|
+      min = [ min, y_values[i].min ].min
+      max = [ max, y_values[i].max ].max
+    end
+    border = (max-min)*0.1
+    min_border = min-border
+    max_border = max+border
+    y_range = [min_border, max_border]
     
     plot_points(path, title, x_lable, y_lable, names, x_values, y_values, false, nil, y_range, false, false, true, true, reverse_y)
   end
