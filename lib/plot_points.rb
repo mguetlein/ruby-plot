@@ -8,20 +8,14 @@
 
 module RubyPlot
 
-  def self.plot_points(path, title, x_lable, y_lable, names, x_values, y_values, log=true)
-    
-    LOGGER.debug "ruby-plot: plot points "+names.inspect
-    LOGGER.debug "ruby-plot: plot points "+x_values.inspect
-    LOGGER.debug "ruby-plot: plot points "+y_values.inspect
+  def self.regression_point_plot(path, title, x_lable, y_lable, names, x_values, y_values, log=true) #, quadratic_scale=true, line_points=false, reverse_x=false)
     
     min = Float::MAX
     max = -Float::MAX
-    
     data = []
     (0..x_values.size-1).each do |i|
       data << y_values[i]
       data << x_values[i]
-      
       min = [ min, x_values[i].min, y_values[i].min ].min
       max = [ max, x_values[i].max, y_values[i].max ].max
     end
@@ -29,6 +23,43 @@ module RubyPlot
     if log && min<=0
       LOGGER.warn "cannot use logscale for <=0 data"
       log = false
+    end
+    
+    border = (max-min)*0.1
+    if log
+      min_border = min-border/10.0
+      while min_border<=0
+        border /= 2
+        min_border = min-border/10.0
+      end
+      max_border = max+border
+    else
+      min_border = min-border
+      max_border = max+border
+    end
+    
+    x_range = [min_border, max_border]
+    y_range = [min_border, max_border]
+    
+    plot_points(path, title, x_lable, y_lable, names, x_values, y_values, log, x_range, y_range, true, true, false, false, false)      
+  end
+  
+  def self.accuracy_confidence_plot(path, title, x_lable, y_lable, names, x_values, y_values, y_range=nil, reverse_y=false)
+    
+    plot_points(path, title, x_lable, y_lable, names, x_values, y_values, false, nil, y_range, false, false, true, true, reverse_y)
+  end
+
+  def self.plot_points(path, title, x_lable, y_lable, names, x_values, y_values, 
+    log=true, x_range=nil, y_range=nil, quadratic_scale=true, draw_diagonale=true, line_points=false, reverse_x=false, reverse_y=false)
+    
+    LOGGER.debug "ruby-plot: plot points "+names.inspect
+    LOGGER.debug "ruby-plot: plot points "+x_values.inspect
+    LOGGER.debug "ruby-plot: plot points "+y_values.inspect
+    
+    data = []
+    (0..x_values.size-1).each do |i|
+      data << y_values[i]
+      data << x_values[i]
     end
     
     #Main
@@ -121,8 +152,6 @@ module RubyPlot
     else
       raise "format not supported "+path.to_s
     end
-    # x and y have equal scale
-    output_plt_arr.push 'set size ratio -1'
     
     if log
       output_plt_arr.push 'set logscale x'
@@ -133,20 +162,15 @@ module RubyPlot
     output_plt_arr.push ""
     output_plt_arr.push "# Specifies the range of the axes and appearance"
     
-    border = (max-min)*0.1
-    if log
-      min_border = min-border/10.0
-      while min_border<=0
-        border /= 2
-        min_border = min-border/10.0
-      end
-      max_border = max+border
-    else
-      min_border = min-border
-      max_border = max+border
-    end
-    output_plt_arr.push "set xrange ["+min_border.to_s+":"+max_border.to_s+"]"
-    output_plt_arr.push "set yrange ["+min_border.to_s+":"+max_border.to_s+"]"
+    x_range_s = x_range ? "["+x_range[0].to_s+":"+x_range[1].to_s+"]" : "[]"
+    y_range_s = y_range ? "["+y_range[0].to_s+":"+y_range[1].to_s+"]" : "[]"
+    reverse_x_s = reverse_x ? "reverse" : ""
+    reverse_y_s = reverse_y ? "reverse" : ""
+    output_plt_arr.push "set xrange "+x_range_s+" "+reverse_x_s
+    output_plt_arr.push "set yrange "+y_range_s+" "+reverse_y_s
+    
+    output_plt_arr.push 'set size ratio -1' if quadratic_scale
+    output_plt_arr.push "set arrow from "+x_range[0].to_s+","+y_range[0].to_s+" to "+x_range[1].to_s+","+y_range[1].to_s+" nohead lt 0" if draw_diagonale
     
     output_plt_arr.push "set grid lw 0.5"
     output_plt_arr.push "set title \"#{title}\""
@@ -154,7 +178,7 @@ module RubyPlot
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
     
-    output_plt_arr.push "set arrow from "+min_border.to_s+","+min_border.to_s+" to "+max_border.to_s+","+max_border.to_s+" nohead lt 0"
+    
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push ""
@@ -162,12 +186,18 @@ module RubyPlot
     output_plt_arr.push "# Draws the plot and specifies its appearance ..."
     
     output_plt_arr.push "plot \\"#'random_0.dat' using 1:2 title 'random' with lines lw 1, \\"
+    
+    style = "points"
+    if (line_points)
+      style = "lp"
+    end
+    
     i = 0
     for i in 0..names.length-1
       if i == names.length-1
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with points"
+        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with "+style.to_s
       else
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with points, \\"
+        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with "+style.to_s+", \\"
       end
     end
     output_plt_arr.push ""
@@ -209,9 +239,13 @@ module RubyPlot
   end
  
   def self.test_plot_points
-    plot_points("/tmp/result.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
+    regression_point_plot("/tmp/regression.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
       [[0.20,0.60,0.80,0.20,1.0,0.001], [0.10,0.25,0.70,0.95,0.2,0.3434]], 
       [[0.15,0.50,0.90,0.2,9,0.5],[0.20,0.40,0.50,0.70,0.3,0.234589]])
+      
+    accuracy_confidence_plot("/tmp/accuracy-conf.png" , "name of title", "x-values", "y-values", ["test" ], 
+      [[0.9,0.5,0.3,0.1]],
+      [[100,90,70,30]])
   end
  
   private
