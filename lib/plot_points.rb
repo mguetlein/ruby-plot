@@ -34,9 +34,8 @@ module RubyPlot
       min_border = min-border
       max_border = max+border
     end
-    
-    x_range = [min_border, max_border]
-    y_range = [min_border, max_border]
+    x_range = min==max ? nil : [min_border, max_border]
+    y_range = min==max ? nil : [min_border, max_border]
     
     plot_points(path, title, x_lable, y_lable, names, x_values, y_values, log, x_range, y_range, true, true, false, false, false)      
   end
@@ -52,7 +51,7 @@ module RubyPlot
     border = (max-min)*0.1
     min_border = min-border
     max_border = max+border
-    y_range = [min_border, max_border]
+    y_range = min==max ? nil : [min_border, max_border]
     
     plot_points(path, title, x_lable, y_lable, names, x_values, y_values, false, nil, y_range, false, false, true, true, reverse_y)
   end
@@ -60,9 +59,10 @@ module RubyPlot
   def self.plot_points(path, title, x_lable, y_lable, names, x_values, y_values, 
     log=true, x_range=nil, y_range=nil, quadratic_scale=true, draw_diagonale=true, line_points=false, reverse_x=false, reverse_y=false)
     
-    LOGGER.debug "ruby-plot: plot points "+names.inspect
-    LOGGER.debug "ruby-plot: plot points "+x_values.inspect
-    LOGGER.debug "ruby-plot: plot points "+y_values.inspect
+    LOGGER.debug "ruby-plot: names   "+names.inspect
+    LOGGER.debug "ruby-plot: x       "+x_values.inspect
+    LOGGER.debug "ruby-plot: y       "+y_values.inspect
+    LOGGER.debug "ruby-plot: y_range "+y_range.inspect
     
     data = []
     (0..x_values.size-1).each do |i|
@@ -196,7 +196,7 @@ module RubyPlot
     output_plt_arr.push "plot \\"#'random_0.dat' using 1:2 title 'random' with lines lw 1, \\"
     
     style = "points"
-    if (line_points)
+    if line_points
       style = "lp"
     end
     
