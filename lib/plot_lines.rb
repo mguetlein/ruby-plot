@@ -8,11 +8,12 @@
 
 module RubyPlot
 
-  def self.plot_lines(path, title, x_lable, y_lable, names, x_values, y_values, faint=nil)
+  def self.plot_lines(path, title, x_lable, y_lable, names, x_values, y_values, faint=nil, labels=nil)
     
-    #LOGGER.debug names.inspect
-    #LOGGER.debug x_values.inspect
-    #LOGGER.debug y_values.inspect
+    LOGGER.debug "plot lines -- "+names.inspect
+    LOGGER.debug "plot lines -- "+x_values.inspect
+    LOGGER.debug "plot lines -- "+y_values.inspect
+    LOGGER.debug "plot lines -- "+labels.inspect
     
     data = []
     (0..x_values.size-1).each do |i|
@@ -116,7 +117,7 @@ module RubyPlot
     
     # x and y have equal scale
     output_plt_arr.push 'set size ratio -1'
-
+    
     output_plt_arr.push "set xrange [0:100]"
     output_plt_arr.push "set yrange [0:100]"
     output_plt_arr.push "set grid lw 0.5"
@@ -131,6 +132,23 @@ module RubyPlot
     output_plt_arr.push ""
     output_plt_arr.push ""
     output_plt_arr.push "# Draws the plot and specifies its appearance ..."
+    
+    if labels!=nil
+      type = 1
+      labels.each do |label|
+        if label!=nil
+          l = label[0]
+          x = label[1]
+          y = label[2]
+          puts l.to_s+" "+x.to_s+" "+y.to_s
+          #output_plt_arr.push "set label \"("+x.to_s+","+y.to_s+") "+l.to_s+"\" at first 25, first 40"
+          output_plt_arr.push "set label \""+l.to_s+"\" at first "+x.to_s+", first "+y.to_s+" front offset 1,-1 tc lt "+type.to_s
+          output_plt_arr.push "set arrow from "+(x+3).to_s+","+(y-3).to_s+" to "+(x+1).to_s+","+(y-1).to_s+" lt "+type.to_s
+        end
+        type += 1
+      end
+    end
+    
     output_plt_arr.push "plot \\"#'random_0.dat' using 1:2 title 'random' with lines lw 1, \\"
     i = 0
     for i in 0..names.length-1
@@ -180,9 +198,9 @@ module RubyPlot
   end
  
   def self.test_plot_lines
-    plot_lines("/tmp/result.svg" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true])
+    #plot_lines("/tmp/result.svg" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true])
     
-    plot_lines("/tmp/result.png" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true])
+    plot_lines("/tmp/result.png" , "name of title", "x-values", "y-values", ["name", "test", "bla"], [[20,60,80], [10,25,70,95], [12,78,99]], [[15,50,90],[20,40,50,70],[34,89,89]],[true,false,true],[nil,["confidence",25,40]])
   end
  
   private
