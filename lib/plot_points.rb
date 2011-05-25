@@ -59,10 +59,10 @@ module RubyPlot
   def self.plot_points(path, title, x_lable, y_lable, names, x_values, y_values, 
     log=true, x_range=nil, y_range=nil, quadratic_scale=true, draw_diagonale=true, line_points=false, reverse_x=false, reverse_y=false)
     
-    LOGGER.debug "ruby-plot: names   "+names.inspect
-    LOGGER.debug "ruby-plot: x       "+x_values.inspect
-    LOGGER.debug "ruby-plot: y       "+y_values.inspect
-    LOGGER.debug "ruby-plot: y_range "+y_range.inspect
+    LOGGER.debug "plot points -- names   "+names.inspect
+    LOGGER.debug "plot points -- x       "+x_values.inspect
+    LOGGER.debug "plot points -- y       "+y_values.inspect
+    LOGGER.debug "plot points -- y_range "+y_range.inspect
     
     data = []
     (0..x_values.size-1).each do |i|
@@ -77,7 +77,7 @@ module RubyPlot
     # -----------------------------------------------------
     # check parameters
     status=false
-    LOGGER.debug "#{names.length} algs entered"
+    #LOGGER.debug "#{names.length} algs entered"
     
     #LOGGER.debug names.inspect
     #LOGGER.debug data.inspect
@@ -94,17 +94,12 @@ module RubyPlot
     
     # gnuplot check
     gnuplot=`which gnuplot | grep -o gnuplot`
-    if gnuplot == "gnuplot\n"
-      LOGGER.debug "Gnuplot is already installed."
-    else
+    if gnuplot != "gnuplot\n"
       raise "Please install gnuplot.\n"+
             "sudo apt-get install gnuplot"
     end
-    
-    dat_number=0
-    
     output_dat_arr = Array.new
-    
+    tmp_datasets = []
     
     # -----------------------------------------------------
     # create *.dat files of imported data for gnuplot
@@ -134,16 +129,17 @@ module RubyPlot
         #write *.dat files
         #-----------------------------------------------------
         #write output_dat_arr content in new *.dat file
-        File.open( "data#{i}.dat", "w" ) do |the_file|
-            the_file.puts output_dat_arr
-        end
-        LOGGER.debug "data#{i}.dat created."
+        
+        tmp_file = Tempfile.new("data#{i}.dat")
+        tmp_datasets << tmp_file
+        tmp_file.puts output_dat_arr
+        tmp_file.close
         output_dat_arr.clear
-            
       else
         raise "Data pair of #{names[i]} have no the same number of elements."
       end
     end
+    LOGGER.debug "plot points -- datasets "+tmp_datasets.collect{|d| d.path}.inspect
     
     # -----------------------------------------------------
     # create *.plt file for gnuplot
@@ -203,9 +199,9 @@ module RubyPlot
     i = 0
     for i in 0..names.length-1
       if i == names.length-1
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with "+style.to_s
+        output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 title '#{names[i]}' with "+style.to_s
       else
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{names[i]}' with "+style.to_s+", \\"
+        output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 title '#{names[i]}' with "+style.to_s+", \\"
       end
     end
     output_plt_arr.push ""
@@ -218,13 +214,14 @@ module RubyPlot
     # write *.plt files
     # -----------------------------------------------------
     # write output_dat_arr content in new *.dat file
-    File.open( "config.plt", "w" ) do |the_file|
-      the_file.puts output_plt_arr
-    end
-    LOGGER.debug "config.plt created, running gnuplot"
+    tmp_file = Tempfile.new("config.plt")
+    tmp_datasets << tmp_file
+    tmp_file.puts output_plt_arr
+    tmp_file.close
     
     # start gnuplot with created *.plt file
-    cmd = "gnuplot config.plt 2>&1"
+    cmd = "gnuplot "+tmp_file.path+" 2>&1"
+    LOGGER.debug "plot points -- running gnuplot '"+cmd+"'"
     response = ""
     IO.popen(cmd) do |f| 
       while line = f.gets
@@ -232,18 +229,12 @@ module RubyPlot
       end
     end
     raise "gnuplot failes (cmd: "+cmd.to_s+", out: "+response.to_s+")" unless $?==0
-    
-    LOGGER.debug "#{path} created. "
+    LOGGER.info "plot points -- RESULT: #{path}"
     
     # -----------------------------------------------------
     # remove *.plt and *.dat files
     # -----------------------------------------------------
-    `rm config.plt`
-    LOGGER.debug "config.plt removed."
-    for i in 0..names.length-1
-      `rm data#{i}.dat`
-      LOGGER.debug "data#{i}.dat removed."
-    end
+    tmp_datasets.each{|f| f.delete}
   end
  
   def self.test_plot_points

@@ -1,6 +1,7 @@
 require 'rubygems' 
 require 'logger'
 require 'gnuplot'
+require 'tempfile'
 
 unless(defined? LOGGER)
   LOGGER = Logger.new(STDOUT)

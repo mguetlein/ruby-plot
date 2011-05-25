@@ -23,14 +23,13 @@ module RubyPlot
     
     # gnuplot check
     gnuplot=`which gnuplot | grep -o gnuplot`
-    if gnuplot == "gnuplot\n"
-      LOGGER.debug "Gnuplot is already installed."
-    else
+    if gnuplot!="gnuplot\n"
       raise "Please install gnuplot.\n"+
             "sudo apt-get install gnuplot"
     end
     
     output_dat_arr = Array.new
+    tmp_datasets = []
     
     # -----------------------------------------------------
     # create *.dat files of imported data for gnuplot
@@ -63,16 +62,16 @@ module RubyPlot
         #write *.dat files
         #-----------------------------------------------------
         #write output_dat_arr content in new *.dat file
-        File.open( "data#{i}.dat", "w" ) do |the_file|
-            the_file.puts output_dat_arr
-        end
-        LOGGER.debug "data#{i}.dat created."
+        tmp_file = Tempfile.new("data#{i}.dat")
+        tmp_datasets << tmp_file
+        tmp_file.puts output_dat_arr
+        tmp_file.close
         output_dat_arr.clear
-            
       else
         raise "num x-values != y-values: "+plot_data[i].inspect
       end
     end
+    LOGGER.debug "plot lines -- datasets "+tmp_datasets.collect{|d| d.path}.inspect
     
     # -----------------------------------------------------
     # create *.plt file for gnuplot
@@ -135,9 +134,9 @@ module RubyPlot
       style = plot_data[i].faint ? "lw 2" : "lw 4"
       
       if i == plot_data.length-1
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{plot_data[i].name}' with lines #{style}"
+        output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 title '#{plot_data[i].name}' with lines #{style}"
       else
-        output_plt_arr.push " 'data#{i}.dat'  using 2:1 title '#{plot_data[i].name}' with lines #{style}, \\"
+        output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 title '#{plot_data[i].name}' with lines #{style}, \\"
       end
     end
     output_plt_arr.push ""
@@ -147,13 +146,14 @@ module RubyPlot
     # write *.plt files
     # -----------------------------------------------------
     # write output_dat_arr content in new *.dat file
-    File.open( "config.plt", "w" ) do |the_file|
-      the_file.puts output_plt_arr
-    end
-    LOGGER.debug "config.plt created, running gnuplot"
+    tmp_file = Tempfile.new("config.plt")
+    tmp_datasets << tmp_file
+    tmp_file.puts output_plt_arr
+    tmp_file.close
     
     # start gnuplot with created *.plt file
-    cmd = "gnuplot config.plt 2>&1"
+    cmd = "gnuplot "+tmp_file.path+" 2>&1"
+    LOGGER.debug "plot lines -- running gnuplot '"+cmd+"'"
     response = ""
     IO.popen(cmd) do |f| 
       while line = f.gets
@@ -161,18 +161,12 @@ module RubyPlot
       end
     end
     raise "gnuplot failes (cmd: "+cmd.to_s+", out: "+response.to_s+")" unless $?==0
-    
-    LOGGER.debug "#{path} created. "
+    LOGGER.info "plot lines -- RESULT: #{path}"
     
     # -----------------------------------------------------
     # remove *.plt and *.dat files
     # -----------------------------------------------------
-    `rm config.plt`
-    LOGGER.debug "config.plt removed."
-    for i in 0..plot_data.length-1
-      `rm data#{i}.dat`
-      LOGGER.debug "data#{i}.dat removed."
-    end
+    tmp_datasets.each{|f| f.delete}
   end
  
   def self.test_plot_lines
