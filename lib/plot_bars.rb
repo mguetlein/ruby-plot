@@ -6,6 +6,7 @@ module RubyPlot
    #puts "'"+title+"',"+measures.inspect+","+algorithms.inspect+","
     
     measures = measures.collect{|m| m.gsub(/_/,'-')}
+    algorithms = algorithms.each{|m| m[0].gsub!(/_/,'-')}
     
     Gnuplot.open do |gp|
       Gnuplot::Plot.new( gp ) do |plot|
@@ -63,11 +64,11 @@ module RubyPlot
   
   def self.test_plot_bars
     x = ['ACC_with_very_long_name_consider_that', 'AUC', 'SPEC', 'SENS']
-    data = [['Alg1', 1.00, 1.00, 1.00, 1.00], ['Alg2', 0.75, 0.75, 0.75, 0.75], ['Alg3', 0.50, 0.50, 0.50, 0.50]]
+    data = [['Baller_Algorithm_1', 1.00, 1.00, 1.00, 1.00], ['Alg2', 0.75, 0.75, 0.75, 0.75], ['Alg3', 0.50, 0.50, 0.50, 0.50]]
     plot_bars('Vergleich der Algorithmen', x, data, '/tmp/hist.svg')
     
     x = ['ACC_with_very_long_name_consider_that', 'AUC', 'SPEC', 'SENS']
-    data = [['Alg1', 1.00, 1.00, 1.00, 1.00], ['Alg2', 0.75, 0.75, 0.75, 0.75], ['Alg3', 0.50, 0.50, 0.50, 0.50]]
+    data = [['Baller_Algorithm_1', 1.00, 1.00, 1.00, 1.00], ['Alg2', 0.75, 0.75, 0.75, 0.75], ['Alg3', 0.50, 0.50, 0.50, 0.50]]
     plot_bars('Vergleich der Algorithmen', x, data, '/tmp/hist.png')
   end
   

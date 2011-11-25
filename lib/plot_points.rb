@@ -10,6 +10,10 @@ module RubyPlot
 
   def self.regression_point_plot(path, title, x_lable, y_lable, names, x_values, y_values, log=true) #, quadratic_scale=true, line_points=false, reverse_x=false)
     
+    LOGGER.debug "plot regr -- names   "+names.inspect
+    LOGGER.debug "plot regr -- x       "+x_values.inspect
+    LOGGER.debug "plot regr -- y       "+y_values.inspect
+    
     min = Float::MAX
     max = -Float::MAX
     (0..x_values.size-1).each do |i|
@@ -40,7 +44,11 @@ module RubyPlot
     plot_points(path, title, x_lable, y_lable, names, x_values, y_values, log, x_range, y_range, true, true, false, false, false)      
   end
   
-  def self.accuracy_confidence_plot(path, title, x_lable, y_lable, names, x_values, y_values, reverse_y=false) #y_range=nil, 
+  def self.confidence_plot(path, title, x_lable, y_lable, names, x_values, y_values, y_range=nil) 
+    
+    LOGGER.debug "plot conf -- names   "+names.inspect
+    LOGGER.debug "plot conf -- x       "+x_values.inspect
+    LOGGER.debug "plot conf -- y       "+y_values.inspect
     
     min = Float::MAX
     max = -Float::MAX
@@ -51,9 +59,15 @@ module RubyPlot
     border = (max-min)*0.1
     min_border = min-border
     max_border = max+border
-    y_range = min==max ? nil : [min_border, max_border]
-    
-    plot_points(path, title, x_lable, y_lable, names, x_values, y_values, false, nil, y_range, false, false, true, true, reverse_y)
+
+    if (y_range==nil) # use own computed range only if not explicitly definded...
+      y_range = min==max ? nil : [min_border, max_border]
+    elsif (y_range[0] > max_border ) #.. or if values out of scope
+      y_range[0] = min_border
+    elsif (y_range[1] < min_border )
+      y_range[1] = max_border
+    end
+    plot_points(path, title, x_lable, y_lable, names, x_values, y_values, false, nil, y_range, false, false, true, true, false)
   end
 
   def self.plot_points(path, title, x_lable, y_lable, names, x_values, y_values, 
@@ -203,11 +217,20 @@ module RubyPlot
       else
         output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 title '#{names[i]}' with "+style.to_s+", \\"
       end
+
+      #output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 title '#{names[i]}' with "+style.to_s
+      #output_plt_arr[-1] = output_plt_arr[-1]+", \\" if names.size==1 or i<names.length-1
+      #
+      #if names.size==1
+      #  output_plt_arr.push " '"+tmp_datasets[i].path+"'  using 2:1 smooth bezier notitle with lines"
+      #  output_plt_arr[-1] = output_plt_arr[-1]+", \\" if i<names.length-1
+      #end
     end
     output_plt_arr.push ""
     output_plt_arr.push ""
-    
-    
+
+    #puts output_plt_arr.join("\n")
+
     #output_plt_arr << "plot f(x)"
     
     # -----------------------------------------------------
@@ -238,13 +261,25 @@ module RubyPlot
   end
  
   def self.test_plot_points
-    regression_point_plot("/tmp/regression.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
-      [[0.20,0.60,0.80,0.20,1.0,0.001], [0.10,0.25,0.70,0.95,0.2,0.3434]], 
-      [[0.15,0.50,0.90,0.2,9,0.5],[0.20,0.40,0.50,0.70,0.3,0.234589]])
-      
-    accuracy_confidence_plot("/tmp/accuracy-conf.png" , "name of title", "x-values", "y-values", ["test" ], 
-      [[0.9,0.5,0.3,0.1]],
-      [[100,90,70,30]])
+#    regression_point_plot("/tmp/regression.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
+#      [[0.20,0.60,0.80,0.20,1.0,0.001], [0.10,0.25,0.70,0.95,0.2,0.3434]], 
+#      [[0.15,0.50,0.90,0.2,9,0.5],[0.20,0.40,0.50,0.70,0.3,0.234589]])
+#    accuracy_confidence_plot("/tmp/accuracy-conf.png" , "name of title", "x-values", "y-values", ["test" ], 
+#      [[0.9,0.5,0.3,0.1]],
+#      [[100,90,70,30]])
+     
+    x = []
+    y = []
+    noise = 0
+    100.times do |i|
+      i += 1
+      noise += rand**2 * (rand<0.5 ? 1 : -1)
+      x << i
+      y << 1/i + noise
+    end
+    confidence_plot("/tmp/test-plot.svg" , "name of title", "x-values", "y-values", ["test"], 
+      [x],
+      [y])
   end
  
   private
