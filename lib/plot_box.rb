@@ -4,12 +4,14 @@ module RubyPlot
 
   def self.box_plot(path, title, y_lable, names, values)
     
+    check_box_plot_available
+    
     LOGGER.debug "plot box -- names   "+names.inspect
     LOGGER.debug "plot box -- values       "+values.inspect
     
 #    STDOUT.sync = true
     raise if names.length != values.length
-    gnuplot = '/home/martin/software/gnuplot-dev/install/bin/gnuplot'
+    gnuplot = 'gnuplot' 
     
     tmp_datasets = []
     tmp_file = Tempfile.new("data.dat")
@@ -89,6 +91,20 @@ EOF
     LOGGER.info "plot box -- RESULT: #{path}"
     
     tmp_datasets.each{|f| f.delete}
+  end
+  
+  def self.check_box_plot_available
+    IO.popen('gnuplot --version') do |f| 
+      while line = f.gets
+        if line =~ /^gnuplot ([0-9])+\.([0-9]+)/
+          major = Regexp.last_match(1).to_i
+          minor = Regexp.last_match(2).to_i
+          return true unless ((major==4 and minor<5) or major<4) 
+          raise "gnuplot version < 4.5 ("+line.chomp+")"
+        end  
+      end
+    end
+    raise "could not parse gnuplot version"
   end
  
   def self.test_plot_box

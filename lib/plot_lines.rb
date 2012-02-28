@@ -23,7 +23,8 @@ module RubyPlot
     
     # gnuplot check
     gnuplot=`which gnuplot | grep -o gnuplot`
-    if gnuplot!="gnuplot\n"
+    #puts gnuplot
+    unless gnuplot =~ /gnuplot/
       raise "Please install gnuplot.\n"+
             "sudo apt-get install gnuplot"
     end
@@ -99,7 +100,11 @@ module RubyPlot
     output_plt_arr.push "set yrange [0:100]"
     output_plt_arr.push "set grid lw 0.5"
     output_plt_arr.push "set title \"#{title}\""
-    output_plt_arr.push "set key below"
+    if plot_data.size>10
+      output_plt_arr.push "set nokey"
+    else
+      output_plt_arr.push "set key below"
+    end
     #output_plt_arr.push "set key invert reverse Left outside"
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""

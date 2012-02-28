@@ -192,7 +192,11 @@ module RubyPlot
     
     output_plt_arr.push "set grid lw 0.5"
     output_plt_arr.push "set title \"#{title}\""
-    output_plt_arr.push "set key below"
+    if names.size>10
+      output_plt_arr.push "set nokey"
+    else
+      output_plt_arr.push "set key below"
+    end
     output_plt_arr.push "set xlabel \"#{x_lable}\""
     output_plt_arr.push "set ylabel \"#{y_lable}\""
     
@@ -261,25 +265,25 @@ module RubyPlot
   end
  
   def self.test_plot_points
-#    regression_point_plot("/tmp/regression.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
-#      [[0.20,0.60,0.80,0.20,1.0,0.001], [0.10,0.25,0.70,0.95,0.2,0.3434]], 
-#      [[0.15,0.50,0.90,0.2,9,0.5],[0.20,0.40,0.50,0.70,0.3,0.234589]])
+    regression_point_plot("/tmp/regression.png" , "name of title", "x-values", "y-values", ["this-one-has-a-very-very-very-long-name", "test" ], 
+      [[0.20,0.60,0.80,0.20,1.0,0.001], [0.10,0.25,0.70,0.95,0.2,0.3434]], 
+      [[0.15,0.50,0.90,0.2,9,0.5],[0.20,0.40,0.50,0.70,0.3,0.234589]])
 #    accuracy_confidence_plot("/tmp/accuracy-conf.png" , "name of title", "x-values", "y-values", ["test" ], 
 #      [[0.9,0.5,0.3,0.1]],
 #      [[100,90,70,30]])
      
-    x = []
-    y = []
-    noise = 0
-    100.times do |i|
-      i += 1
-      noise += rand**2 * (rand<0.5 ? 1 : -1)
-      x << i
-      y << 1/i + noise
-    end
-    confidence_plot("/tmp/test-plot.svg" , "name of title", "x-values", "y-values", ["test"], 
-      [x],
-      [y])
+#    x = []
+#    y = []
+#    noise = 0
+#    100.times do |i|
+#      i += 1
+#      noise += rand**2 * (rand<0.5 ? 1 : -1)
+#      x << i
+#      y << 1/i + noise
+#    end
+#    confidence_plot("/tmp/test-plot.svg" , "name of title", "x-values", "y-values", ["test"], 
+#      [x],
+#      [y])
   end
  
   private
